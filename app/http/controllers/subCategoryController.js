@@ -4,6 +4,19 @@ const exists = require('../../helpers/general');
 const Category = require('../../models/category');
 const ApiError = require('../../helpers/ApiError');
 
+exports.setCategoryIdToBody = (req, res, next) => {
+  if (!req.body.categoryId) {
+    req.body.categoryId = req.params.categoryId;
+  }
+  next();
+};
+
+exports.createFilterObj = (req, res, next) => {
+  let filterObj = {};
+  if (req.params.categoryId) filterObj = { category: req.params.categoryId };
+  req.filterObj = filterObj;
+  next();
+};
 // @desc Get all subcategories
 // @route GET /subcategories
 // @access public
@@ -13,10 +26,7 @@ exports.getSubCategories = asyncHandler(async (req, res) => {
   const startIndex = (page - 1) * limit;
   const total = await SubCategory.countDocuments({});
 
-  let filterObject = {};
-  if (req.params.categoryId) filterObject = { category: req.params.categoryId };
-
-  const categories = await SubCategory.find(filterObject)
+  const categories = await SubCategory.find(req.filterObj)
     .skip(startIndex)
     .limit(limit)
     .populate('category', 'name')

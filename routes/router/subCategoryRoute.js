@@ -1,6 +1,6 @@
 const express = require('express');
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 // Importing the subcategory request validator
 const {
@@ -16,12 +16,14 @@ const {
   getSubCategoryById,
   updateSubCategory,
   deleteSubCategory,
+  createFilterObj,
+  setCategoryIdToBody,
 } = require('../../app/http/controllers/subCategoryController');
 
 router
   .route('/')
-  .get(getSubCategories)
-  .post(createSubCategoryRequest, createSubCategory);
+  .get(createFilterObj, getSubCategories)
+  .post(setCategoryIdToBody, createSubCategoryRequest, createSubCategory);
 
 router
   .route('/:id')

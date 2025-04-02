@@ -1,8 +1,6 @@
 const express = require('express');
 
-const router = express.Router({ mergeParams: true });
-
-const subCategoryRoute = require('./subCategoryRoute');
+const router = express.Router();
 
 const {
   validateCategoryByIdRequest,
@@ -18,6 +16,9 @@ const {
   deleteCategory,
 } = require('../../app/http/controllers/categoryController');
 
+// Subcategory routes
+const subCategoryRoute = require('./subCategoryRoute');
+
 router
   .route('/')
   .get(getCategories)
@@ -29,6 +30,7 @@ router
   .put(updateCategoryRequest, updateCategory)
   .delete(validateCategoryByIdRequest, deleteCategory);
 
+// Nested subcategory routes
 router.use('/:categoryId/subCategories', subCategoryRoute);
 
 module.exports = router;
