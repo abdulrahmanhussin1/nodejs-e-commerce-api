@@ -4,7 +4,7 @@ const ApiError = require('../../helpers/ApiError');
 const validatorMiddleware = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    next(new ApiError('Invalid·Category·ID', 400));
+    next(new ApiError('Invalid request data', 400, errors.array()));
   }
   next();
 };

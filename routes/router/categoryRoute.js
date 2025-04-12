@@ -16,9 +16,6 @@ const {
   deleteCategory,
 } = require('../../app/http/controllers/categoryController');
 
-// Subcategory routes
-const subCategoryRoute = require('./subCategoryRoute');
-
 router
   .route('/')
   .get(getCategories)
@@ -29,6 +26,9 @@ router
   .get(validateCategoryByIdRequest, getCategoryById)
   .put(updateCategoryRequest, updateCategory)
   .delete(validateCategoryByIdRequest, deleteCategory);
+
+// Subcategory routes
+const subCategoryRoute = require('./subCategoryRoute');
 
 // Nested subcategory routes
 router.use('/:categoryId/subCategories', subCategoryRoute);
