@@ -1,6 +1,9 @@
 const asyncHandler = require('express-async-handler');
 const slugify = require('slugify');
 const exists = require('../../helpers/general');
+const ApiFeatures = require('../../helpers/ApiFeatures');
+const factory = require('../../services/generalCrudService');
+
 const Product = require('../../models/product');
 
 // @desc Get all products
@@ -8,21 +11,21 @@ const Product = require('../../models/product');
 // @access public
 
 exports.getProducts = asyncHandler(async (req, res) => {
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit || 15;
-  const startIndex = (page - 1) * limit;
-  const total = await Product.countDocuments({});
+  const documentCount = await Product.countDocuments();
+  const apiFeatures = new ApiFeatures(Product.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .search()
+    .paginate(documentCount);
 
-  const products = await Product.find({})
-    .skip(startIndex)
-    .limit(limit)
-    .sort({ createdAt: -1 });
+  // Execute query
+  const products = await apiFeatures.mongooseQuery;
 
   res.status(200).json({
     success: true,
     message: 'Products retrieved successfully',
-    total,
-    page,
+    paginationResult: apiFeatures.paginationResult,
     data: products,
   });
 });
@@ -30,17 +33,7 @@ exports.getProducts = asyncHandler(async (req, res) => {
 // @desc Get a single product by slug
 // @route products/:id
 // @access public
-exports.getProductById = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const product = await Product.findById(id);
-  if (exists(res, product, 'Product', next)) return;
-
-  res.status(200).json({
-    success: true,
-    message: 'Product retrieved successfully',
-    data: product,
-  });
-});
+exports.getProductById = factory.getOne(Product);
 
 // @desc Create a new product
 // @route POST /products
@@ -79,16 +72,4 @@ exports.updateProduct = asyncHandler(async (req, res, next) => {
 // @desc Delete a product
 // @route DELETE /products/:id
 // @access private
-exports.deleteProduct = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-
-  const product = await Product.findByIdAndDelete(id);
-
-  if (exists(res, product, 'Product', next)) return;
-
-  res.status(200).json({
-    success: true,
-    message: 'Product deleted successfully',
-    data: {},
-  });
-});
+exports.deleteProduct = factory.deleteOne(Product);

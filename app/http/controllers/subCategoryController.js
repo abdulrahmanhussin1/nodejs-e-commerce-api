@@ -1,8 +1,11 @@
 const asyncHandler = require('express-async-handler');
-const SubCategory = require('../../models/subCategory');
 const exists = require('../../helpers/general');
-const Category = require('../../models/category');
 const ApiError = require('../../helpers/ApiError');
+const ApiFeatures = require('../../helpers/ApiFeatures');
+const factory = require('../../services/generalCrudService');
+
+const SubCategory = require('../../models/subCategory');
+const Category = require('../../models/category');
 
 exports.setCategoryIdToBody = (req, res, next) => {
   if (!req.body.categoryId) {
@@ -21,45 +24,29 @@ exports.createFilterObj = (req, res, next) => {
 // @route GET /subcategories
 // @access public
 exports.getSubCategories = asyncHandler(async (req, res) => {
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit || 15;
-  const startIndex = (page - 1) * limit;
-  const total = await SubCategory.countDocuments({});
+  const documentCount = await SubCategory.countDocuments();
+  const apiFeatures = new ApiFeatures(SubCategory.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .search()
+    .paginate(documentCount);
 
-  const categories = await SubCategory.find(req.filterObj)
-    .skip(startIndex)
-    .limit(limit)
-    .populate('category', 'name')
-    .sort({ createdAt: -1 });
+  // Execute query
+  const subCategories = await apiFeatures.mongooseQuery;
 
   res.status(200).json({
     success: true,
     message: 'SubCategories retrieved successfully',
-    total,
-    page,
-    data: categories,
+    paginationResult: apiFeatures.paginationResult,
+    data: subCategories,
   });
 });
 
 // @desc Get a single subcategory by slug
 // @route GET /subcategories/:id
 // @access public
-exports.getSubCategoryById = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-
-  const subcategory = await SubCategory.findById(id).populate(
-    'category',
-    'name',
-  );
-
-  if (exists(res, subcategory, 'Subcategory', next)) return;
-
-  res.status(200).json({
-    success: true,
-    message: 'Subcategory retrieved successfully',
-    data: subcategory,
-  });
-});
+exports.getSubCategoryById = factory.getOne(SubCategory);
 
 // @desc Create a new subcategory
 // @route POST /subcategories
@@ -124,14 +111,4 @@ exports.updateSubCategory = asyncHandler(async (req, res, next) => {
 // @desc Delete a specific subcategory
 // @route DELETE /:id
 // @access private
-exports.deleteSubCategory = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const subcategory = await SubCategory.findByIdAndDelete(id);
-
-  if (exists(res, subcategory, 'Subcategory', next)) return;
-
-  res.status(200).json({
-    success: true,
-    message: 'Subcategory deleted successfully',
-  });
-});
+exports.deleteSubCategory = factory.deleteOne(SubCategory);
