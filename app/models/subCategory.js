@@ -49,6 +49,6 @@ subCategorySchema.pre('save', function (next) {
   }
   next();
 });
-const SubCategory = mongoose.model('subCategory', subCategorySchema);
+const SubCategory = mongoose.model('SubCategory', subCategorySchema);
 
 module.exports = SubCategory;

@@ -1,4 +1,5 @@
 const { body, param } = require('express-validator');
+const slugify = require('slugify');
 const validatorMiddleware = require('../middlewares/validatorMiddleware');
 const SubCategory = require('../../models/subCategory');
 const Brand = require('../../models/brand');
@@ -10,7 +11,11 @@ exports.createProductRequest = [
     .isLength({ min: 3 })
     .withMessage('Product Name must be at least 3 characters')
     .isLength({ max: 100 })
-    .withMessage('Product Name must be at most 100 characters'),
+    .withMessage('Product Name must be at most 100 characters')
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val);
+      return true;
+    }),
 
   body('description')
     .notEmpty()
@@ -106,6 +111,17 @@ exports.createProductRequest = [
 
 exports.updateProductRequest = [
   param('id').isMongoId().withMessage('Invalid Product ID'),
+  body('name')
+    .notEmpty()
+    .withMessage('Product Name is required')
+    .isLength({ min: 3 })
+    .withMessage('Product Name must be at least 3 characters')
+    .isLength({ max: 100 })
+    .withMessage('Product Name must be at most 100 characters')
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val);
+      return true;
+    }),
   validatorMiddleware,
 ];
 

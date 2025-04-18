@@ -1,4 +1,5 @@
 const { check } = require('express-validator');
+const slugify = require('slugify');
 const validatorMiddleware = require('../middlewares/validatorMiddleware');
 
 // Importing the category validator
@@ -13,7 +14,11 @@ exports.createCategoryRequest = [
     .withMessage('Category Name is required')
     .isLength({ min: 3, max: 50 })
     .withMessage('Category Name must be between 3 and 50 characters')
-    .trim(),
+    .trim()
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val);
+      return true;
+    }),
 
   check('description')
     .optional()
@@ -35,7 +40,11 @@ exports.updateCategoryRequest = [
     .withMessage('Category Name is required') // Required
     .isLength({ min: 3, max: 50 })
     .withMessage('Category Name must be between 3 and 50 characters') // Length validation
-    .trim(),
+    .trim()
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val);
+      return true;
+    }),
 
   check('description')
     .optional()
